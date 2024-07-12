@@ -8,11 +8,11 @@ import {
   Delete,
   Query,
 } from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserService } from './user.service';
 import { GetUsersDto } from './dto/get-user.dto';
 import { MongoIdPipe } from 'src/common/mongo-id.pipe';
+import { ApiBody } from '@nestjs/swagger';
 
 @Controller('users')
 export class UserController {
@@ -34,6 +34,7 @@ export class UserController {
   }
 
   @Patch(':id')
+  @ApiBody({ type: UpdateUserDto })
   update(
     @Param('id', MongoIdPipe) id: string,
     @Body()
