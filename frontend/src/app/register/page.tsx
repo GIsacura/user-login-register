@@ -1,100 +1,75 @@
 "use client";
 
-import { toast } from "@/components/ui/use-toast";
-import { UserService } from "@/services/user.service";
+import { AuthService } from "@/services/auth.service";
 import { useFormik } from "formik";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
-export default function Home() {
+const Register = () => {
 	const router = useRouter();
-	const [userId, setUserId] = useState<string | null>(null);
-	useEffect(() => {
-		(async () => {
-			const userId = await sessionStorage.getItem("userId");
-			setUserId(userId);
-		})();
-	}, []);
-
 	const formik = useFormik({
 		initialValues: {
 			name: "",
 			lastName: "",
-			userName: "",
+			username: "",
 			email: "",
 			password: "",
 		},
 		validate: (values) => {
 			const error = {} as any;
 
-			if (
-				values.email &&
+			if (!values.name) {
+				error.name = "Name is required";
+			}
+
+			if (!values.lastName) {
+				error.lastName = "Last name is required";
+			}
+
+			if (!values.username) {
+				error.username = "Username is required";
+			}
+
+			if (!values.email) {
+				error.email = "Email is required";
+			} else if (
 				!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)
 			) {
 				error.email = "Enter a valid email address";
 			}
 
-			if (values.password && values.password.length < 10) {
+			if (!values.password) {
+				error.password = "Password is required";
+			} else if (values.password.length < 10) {
 				error.password = "Password must be at least 10 characters long";
 			}
 
 			return error;
 		},
 		onSubmit: async (values) => {
-			const valuesToArray = Object.entries(values);
-			const valuesToSubmitArray = valuesToArray.filter(
-				(item) => item[1] !== ""
-			);
-			const valuesToSubmit = Object.fromEntries(valuesToSubmitArray);
 			try {
-				if (Object.values(values).join("").length > 0 && userId) {
-					const response = await UserService.updateInfo({
-						userId: userId,
-						...valuesToSubmit,
-					});
-					formik.resetForm();
-					toast({
-						title: "Success",
-						description: "Your info has been updated successfully",
-					});
+				const response = await AuthService.register({
+					name: values.name,
+					lastName: values.lastName,
+					email: values.email,
+					userName: values.username,
+					password: values.password,
+				});
+
+				const jwt = response.data.jwt;
+				const userId = response.data.userInfo._id;
+				if (jwt) {
+					sessionStorage.setItem("jwt", jwt);
+					sessionStorage.setItem("userId", userId);
+					router.push("/");
 				}
 			} catch (error) {
-				toast({
-					title: "Error",
-					description: "Error, try again",
-				});
+				console.log({ error });
 			}
 		},
 	});
-
-	if (!userId) {
-		return (
-			<main className="flex flex-col justify-center items-center h-screen px-5">
-				<h1 className="text-[30px] md:text-[80px]">You are no logged</h1>
-				<section className="flex flex-col md:flex-row gap-3">
-					<Link
-						className="mt-6 border text-center border-blue-500 text-white bg-blue-500 rounded-md p-2 w-[150px] mx-auto"
-						href="/login"
-					>
-						Login
-					</Link>
-					<Link
-						className="mt-6 border text-center border-blue-500 text-white bg-blue-500 rounded-md p-2 w-[150px] mx-auto"
-						href="/register"
-					>
-						Sing up
-					</Link>
-				</section>
-			</main>
-		);
-	}
-
 	return (
-		<main className="max-w-[1000px] flex flex-col mx-auto items-center justify-center min-h-screen mb-5 px-5">
-			<h1 className="text-[30px] md:text-[50px] max-w-max text-center">
-				Update your info
-			</h1>
+		<main className="max-w-[1000px] flex flex-col mx-auto items-center justify-center h-screen mb-5 px-5">
+			<h1 className="text-[30px] md:text-[50px] max-w-max">Sign up</h1>
 
 			<form
 				onSubmit={formik.handleSubmit}
@@ -139,21 +114,21 @@ export default function Home() {
 				</div>
 
 				<div className="flex flex-col">
-					<label id="userName">Username</label>
+					<label id="username">Username</label>
 					<input
 						className={`border ${
-							formik.touched.userName && Boolean(formik.errors.userName)
+							formik.touched.username && Boolean(formik.errors.username)
 								? "border-red-500"
 								: "border-blue-500"
 						} rounded-md p-2 mt-1`}
-						id="userName"
+						id="username"
 						type="text"
-						name="userName"
+						name="username"
 						onChange={formik.handleChange}
-						value={formik.values.userName}
+						value={formik.values.username}
 					/>
-					{formik.touched.userName && formik.errors.userName ? (
-						<p className="text-red-500">{formik.errors.userName}</p>
+					{formik.touched.username && formik.errors.username ? (
+						<p className="text-red-500">{formik.errors.username}</p>
 					) : null}
 				</div>
 
@@ -177,7 +152,7 @@ export default function Home() {
 				</div>
 
 				<div className="flex flex-col">
-					<label>New Password</label>
+					<label>Password</label>
 					<input
 						className={`border ${
 							formik.touched.password && Boolean(formik.errors.password)
@@ -198,9 +173,11 @@ export default function Home() {
 					type="submit"
 					className="mt-6 border border-blue-500 text-white bg-blue-500 rounded-md p-2 w-[150px] mx-auto"
 				>
-					Update
+					Sign up
 				</button>
 			</form>
 		</main>
 	);
-}
+};
+
+export default Register;
