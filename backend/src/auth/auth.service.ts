@@ -1,15 +1,28 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async create(data: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-    return await this.userService.create({ ...data, password: hashedPassword });
+    try {
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      const response = await this.userService.create({
+        ...data,
+        password: hashedPassword,
+      });
+      const payload = { sub: response.userInfo._id, username: data.email };
+      return { ...response, jwt: await this.jwtService.signAsync(payload) };
+    } catch (error) {
+      return error;
+    }
   }
 
   async validateUser(userName: string, password: string) {
@@ -18,21 +31,30 @@ export class AuthService {
 
     if (userByEmail) {
       const isMatch = await bcrypt.compare(password, userByEmail.password);
+      const payload = { sub: userByEmail._id, username: userByEmail.email };
 
       if (isMatch) {
-        const { password, ...rta } = userByEmail;
-        return rta;
+        return {
+          jwt: await this.jwtService.signAsync(payload),
+          ...userByEmail,
+        };
       }
     }
 
     if (userByUserName) {
       const isMatch = await bcrypt.compare(password, userByUserName.password);
+      const payload = {
+        sub: userByUserName._id,
+        username: userByUserName.email,
+      };
       if (isMatch) {
-        const { password, ...rta } = userByUserName;
-        return rta;
+        return {
+          jwt: await this.jwtService.signAsync(payload),
+          ...userByUserName,
+        };
       }
     }
 
-    return null;
+    return new NotFoundException('Invalid credentials');
   }
 }

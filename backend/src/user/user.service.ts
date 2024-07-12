@@ -39,10 +39,11 @@ export class UserService {
     }
 
     const newProduct = new this.userModel(productData);
-    newProduct.save();
+    const userInfo = await newProduct.save();
 
     return {
       message: 'User created successfully',
+      userInfo,
     };
   }
 
@@ -103,7 +104,17 @@ export class UserService {
     return user[0];
   }
 
-  async update(id: string, changes: UpdateUserDto) {
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      lastName?: string;
+      userName?: string;
+      email?: string;
+      password?: string;
+    },
+  ) {
+    const changes = { ...data, updatedAt: new Date() };
     const user = await this.userModel
       .findByIdAndUpdate(id, { $set: changes }, { new: true })
       .exec();

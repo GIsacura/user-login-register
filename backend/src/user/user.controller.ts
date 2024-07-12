@@ -36,9 +36,16 @@ export class UserController {
   @Patch(':id')
   update(
     @Param('id', MongoIdPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body()
+    data: {
+      name?: string;
+      lastName?: string;
+      userName?: string;
+      email?: string;
+      password?: string;
+    },
   ) {
-    return this.userService.update(id, updateUserDto);
+    return this.userService.update(id, data);
   }
 
   @Delete(':id')
