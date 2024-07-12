@@ -115,6 +115,21 @@ export class UserService {
     },
   ) {
     const changes = { ...data, updatedAt: new Date() };
+    const userByEmail = await this.userModel
+      .findOne({ email: data.email })
+      .exec();
+    const userByUserName = await this.userModel
+      .findOne({ userName: data.userName })
+      .exec();
+
+    if (userByEmail) {
+      throw new BadRequestException('Email already exists');
+    }
+
+    if (userByUserName) {
+      throw new BadRequestException('Username already exists');
+    }
+
     const user = await this.userModel
       .findByIdAndUpdate(id, { $set: changes }, { new: true })
       .exec();

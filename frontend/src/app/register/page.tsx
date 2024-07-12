@@ -1,5 +1,6 @@
 "use client";
 
+import { toast } from "@/components/ui/use-toast";
 import { AuthService } from "@/services/auth.service";
 import { useFormik } from "formik";
 import Link from "next/link";
@@ -55,6 +56,20 @@ const Register = () => {
 					userName: values.username,
 					password: values.password,
 				});
+
+				if (response.data.message === "Username already exists") {
+					toast({
+						title: "Invalid username",
+						description: response.data.message,
+					});
+				}
+
+				if (response.data.message === "Email already exists") {
+					toast({
+						title: "Invalid email",
+						description: response.data.message,
+					});
+				}
 
 				const jwt = response.data.jwt;
 				const userId = response.data.userInfo._id;

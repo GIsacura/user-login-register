@@ -59,11 +59,23 @@ export default function Home() {
 						description: "Your info has been updated successfully",
 					});
 				}
-			} catch (error) {
-				toast({
-					title: "Error",
-					description: "Error, try again",
-				});
+			} catch (error: any) {
+				if (error.response.data.message === "Username already exists") {
+					toast({
+						title: "Invalid username",
+						description: error.response.data.message,
+					});
+				} else if (error.response.data.message === "Email already exists") {
+					toast({
+						title: "Invalid email",
+						description: error.response.data.message,
+					});
+				} else {
+					toast({
+						title: "Error",
+						description: "Error, try again",
+					});
+				}
 			}
 		},
 	});
