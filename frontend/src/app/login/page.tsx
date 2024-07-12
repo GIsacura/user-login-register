@@ -3,6 +3,7 @@
 import { toast } from "@/components/ui/use-toast";
 import { AuthService } from "@/services/auth.service";
 import { useFormik } from "formik";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -108,6 +109,12 @@ const Login = () => {
 				>
 					Log in
 				</button>
+				<Link
+					href="/"
+					className="mt-2 border border-blue-500 text-white text-center bg-blue-500 rounded-md p-2 w-[150px] mx-auto"
+				>
+					Cancel
+				</Link>
 			</form>
 		</main>
 	);
